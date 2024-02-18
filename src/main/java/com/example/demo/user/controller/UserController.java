@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "유저(users)")
+@Tag(name = "유저(users)") // swagger 관련
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -30,27 +30,27 @@ public class UserController {
 
     private final UserService userService;
 
-    @ResponseStatus
+    @ResponseStatus // HTTP 상태 코드 설정
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable long id) {
         return ResponseEntity
             .ok()
-            .body(toResponse(userService.getByIdOrElseThrow(id)));
+            .body(toResponse(userService.getById(id)));
     }
 
     @GetMapping("/{id}/verify")
     public ResponseEntity<Void> verifyEmail(
         @PathVariable long id,
-        @RequestParam String certificationCode) {
+        @RequestParam String certificationCode) { // Get 방식에서 쿼리 매개변수 가져올 때 사용
         userService.verifyEmail(id, certificationCode);
-        return ResponseEntity.status(HttpStatus.FOUND)
-            .location(URI.create("http://localhost:3000"))
+        return ResponseEntity.status(HttpStatus.FOUND) // 리다이렉션 의미
+            .location(URI.create("http://localhost:3000")) // 리다이렉션 위치
             .build();
     }
 
     @GetMapping("/me")
     public ResponseEntity<MyProfileResponse> getMyInfo(
-        @Parameter(name = "EMAIL", in = ParameterIn.HEADER)
+        @Parameter(name = "EMAIL", in = ParameterIn.HEADER) // Swagger 어노테이션 (매개변수가 헤더에 위치함 나타냄)
         @RequestHeader("EMAIL") String email // 일반적으로 스프링 시큐리티를 사용한다면 UserPrincipal 에서 가져옵니다.
     ) {
         UserEntity userEntity = userService.getByEmail(email);
@@ -65,10 +65,10 @@ public class UserController {
     public ResponseEntity<MyProfileResponse> updateMyInfo(
         @Parameter(name = "EMAIL", in = ParameterIn.HEADER)
         @RequestHeader("EMAIL") String email, // 일반적으로 스프링 시큐리티를 사용한다면 UserPrincipal 에서 가져옵니다.
-        @RequestBody UserUpdateDto userUpdateDto
+        @RequestBody UserUpdateDto userUpdateDto // Post, Put, Patch에서 데이터 가져올 때 사용
     ) {
         UserEntity userEntity = userService.getByEmail(email);
-        userEntity = userService.updateUser(userEntity.getId(), userUpdateDto);
+        userEntity = userService.update(userEntity.getId(), userUpdateDto);
         return ResponseEntity
             .ok()
             .body(toMyProfileResponse(userEntity));

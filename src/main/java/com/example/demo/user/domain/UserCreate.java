@@ -1,4 +1,4 @@
-package com.example.demo.model.dto;
+package com.example.demo.user.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package com.example.demo.controller;
+package com.example.demo.user.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

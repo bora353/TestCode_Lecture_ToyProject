@@ -1,5 +1,6 @@
-package com.example.demo.model.dto;
+package com.example.demo.post.controller.dto;
 
+import com.example.demo.user.controller.dto.UserResponse;
 import lombok.Getter;
 import lombok.Setter;
 

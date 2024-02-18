@@ -23,22 +23,18 @@ public class UserService {
     private final UserRepository userRepository;
     private final JavaMailSender mailSender;
 
-    public Optional<UserEntity> getById(long id) {
-        return userRepository.findByIdAndStatus(id, UserStatus.ACTIVE);
-    }
-
     public UserEntity getByEmail(String email) {
         return userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
             .orElseThrow(() -> new ResourceNotFoundException("Users", email));
     }
 
-    public UserEntity getByIdOrElseThrow(long id) {
+    public UserEntity getById(long id) { // get은 throw 던짐
         return userRepository.findByIdAndStatus(id, UserStatus.ACTIVE)
             .orElseThrow(() -> new ResourceNotFoundException("Users", id));
     }
 
     @Transactional
-    public UserEntity createUser(UserCreateDto userCreateDto) {
+    public UserEntity create(UserCreateDto userCreateDto) {
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail(userCreateDto.getEmail());
         userEntity.setNickname(userCreateDto.getNickname());
@@ -52,8 +48,8 @@ public class UserService {
     }
 
     @Transactional
-    public UserEntity updateUser(long id, UserUpdateDto userUpdateDto) {
-        UserEntity userEntity = getByIdOrElseThrow(id);
+    public UserEntity update(long id, UserUpdateDto userUpdateDto) {
+        UserEntity userEntity = getById(id);
         userEntity.setNickname(userUpdateDto.getNickname());
         userEntity.setAddress(userUpdateDto.getAddress());
         userEntity = userRepository.save(userEntity);
@@ -75,6 +71,7 @@ public class UserService {
         userEntity.setStatus(UserStatus.ACTIVE);
     }
 
+    // private 는 테스트 X
     private void sendCertificationEmail(String email, String certificationUrl) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
