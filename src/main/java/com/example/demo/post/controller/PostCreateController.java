@@ -1,8 +1,8 @@
-package com.example.demo.user.controller;
+package com.example.demo.post.controller;
 
-import com.example.demo.user.domain.dto.PostCreateDto;
-import com.example.demo.user.domain.dto.PostResponse;
-import com.example.demo.user.service.PostService;
+import com.example.demo.post.domain.PostCreate;
+import com.example.demo.post.controller.response.PostResponse;
+import com.example.demo.post.service.PostService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,12 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostCreateController {
 
     private final PostService postService;
-    private final PostController postController;
+    // private final PostController postController;
 
     @PostMapping
-    public ResponseEntity<PostResponse> createPost(@RequestBody PostCreateDto postCreateDto) {
+    public ResponseEntity<PostResponse> createPost(@RequestBody PostCreate postCreate) {
         return ResponseEntity
             .status(HttpStatus.CREATED)
-            .body(postController.toResponse(postService.create(postCreateDto)));
+            .body(PostResponse.from(postService.create(postCreate)));
     }
 }

@@ -1,9 +1,10 @@
-package com.example.demo.controller;
+package com.example.demo.user.controller;
 
-import com.example.demo.model.dto.UserCreateDto;
-import com.example.demo.model.dto.UserResponse;
-import com.example.demo.repository.UserEntity;
-import com.example.demo.service.UserService;
+import com.example.demo.user.domain.User;
+import com.example.demo.user.domain.UserCreate;
+import com.example.demo.user.controller.response.UserResponse;
+import com.example.demo.user.infrastructure.UserEntity;
+import com.example.demo.user.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,15 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserCreateController {
 
-    private final UserController userController;
+    // private final UserController userController; // 필요 없어짐!
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody UserCreateDto userCreateDto) {
-        UserEntity userEntity = userService.create(userCreateDto);
+    public ResponseEntity<UserResponse> createUser(@RequestBody UserCreate userCreateDto) {
+        User user = userService.create(userCreateDto);
         return ResponseEntity
             .status(HttpStatus.CREATED)
-            .body(userController.toResponse(userEntity));
+            .body(UserResponse.from(user));
     }
 
 }

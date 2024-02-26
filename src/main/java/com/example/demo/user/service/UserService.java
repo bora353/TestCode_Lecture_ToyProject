@@ -1,18 +1,19 @@
-package com.example.demo.service;
+package com.example.demo.user.service;
 
-import com.example.demo.exception.CertificationCodeNotMatchedException;
-import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.model.UserStatus;
-import com.example.demo.model.dto.UserCreateDto;
-import com.example.demo.model.dto.UserUpdateDto;
-import com.example.demo.repository.UserEntity;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.common.domain.exception.CertificationCodeNotMatchedException;
+import com.example.demo.common.domain.exception.ResourceNotFoundException;
+import com.example.demo.user.domain.User;
+import com.example.demo.user.domain.UserStatus;
+import com.example.demo.user.domain.UserCreate;
+import com.example.demo.user.domain.UserUpdate;
+import com.example.demo.user.infrastructure.UserEntity;
+
 import java.time.Clock;
-import java.util.Optional;
 import java.util.UUID;
+
+import com.example.demo.user.infrastructure.UserRepositoryImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,67 +21,61 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final JavaMailSender mailSender;
+//    private final UserJpaRepository userJpaRepository;
+//    private final JavaMailSender mailSender;
+    private final UserRepositoryImpl userRepository;
+    private final CertificationService certificationService;
 
-    public UserEntity getByEmail(String email) {
+    public User getByEmail(String email) {
         return userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
             .orElseThrow(() -> new ResourceNotFoundException("Users", email));
     }
 
-    public UserEntity getById(long id) { // get은 throw 던짐
+    public User getById(long id) { // get은 throw 던짐
         return userRepository.findByIdAndStatus(id, UserStatus.ACTIVE)
             .orElseThrow(() -> new ResourceNotFoundException("Users", id));
     }
 
     @Transactional
-    public UserEntity create(UserCreateDto userCreateDto) {
-        UserEntity userEntity = new UserEntity();
-        userEntity.setEmail(userCreateDto.getEmail());
-        userEntity.setNickname(userCreateDto.getNickname());
-        userEntity.setAddress(userCreateDto.getAddress());
-        userEntity.setStatus(UserStatus.PENDING);
-        userEntity.setCertificationCode(UUID.randomUUID().toString());
-        userEntity = userRepository.save(userEntity);
-        String certificationUrl = generateCertificationUrl(userEntity);
-        sendCertificationEmail(userCreateDto.getEmail(), certificationUrl);
-        return userEntity;
+    public User create(UserCreate userCreate) {
+        User user = User.from(userCreate);
+
+//        user.setEmail(userCreate.getEmail());
+//        user.setNickname(userCreate.getNickname());
+//        user.setAddress(userCreate.getAddress());
+//        user.setStatus(UserStatus.PENDING);
+//        user.setCertificationCode(UUID.randomUUID().toString());
+        user = userRepository.save(user);
+
+        certificationService.send(userCreate.getEmail(), user.getId(), user.getCertificationCode());
+        //String certificationUrl = generateCertificationUrl(userEntity);
+        //sendCertificationEmail(userCreate.getEmail(), certificationUrl);
+        return user;
     }
 
     @Transactional
-    public UserEntity update(long id, UserUpdateDto userUpdateDto) {
-        UserEntity userEntity = getById(id);
-        userEntity.setNickname(userUpdateDto.getNickname());
-        userEntity.setAddress(userUpdateDto.getAddress());
-        userEntity = userRepository.save(userEntity);
-        return userEntity;
+    public User update(long id, UserUpdate userUpdate) {
+        User user = getById(id);
+        user = user.update(userUpdate);
+//        userEntity.setNickname(userUpdate.getNickname());
+//        userEntity.setAddress(userUpdate.getAddress());
+//        userEntity = userRepository.save(user);
+        return user;
     }
 
     @Transactional
     public void login(long id) {
-        UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Users", id));
-        userEntity.setLastLoginAt(Clock.systemUTC().millis());
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Users", id));
+        user.login();
+        userRepository.save(user); // JPA와 의존성 끊어지면서 직접 저장해줘야 함! 위에는 도메인 객체, 여기는 영속성 객체
     }
 
     @Transactional
     public void verifyEmail(long id, String certificationCode) {
-        UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Users", id));
-        if (!certificationCode.equals(userEntity.getCertificationCode())) {
-            throw new CertificationCodeNotMatchedException();
-        }
-        userEntity.setStatus(UserStatus.ACTIVE);
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Users", id));
+        user = user.certificate(certificationCode);
+        userRepository.save(user);
     }
 
-    // private 는 테스트 X
-    private void sendCertificationEmail(String email, String certificationUrl) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Please certify your email address");
-        message.setText("Please click the following link to certify your email address: " + certificationUrl);
-        mailSender.send(message);
-    }
 
-    private String generateCertificationUrl(UserEntity userEntity) {
-        return "http://localhost:8080/api/users/" + userEntity.getId() + "/verify?certificationCode=" + userEntity.getCertificationCode();
-    }
 }

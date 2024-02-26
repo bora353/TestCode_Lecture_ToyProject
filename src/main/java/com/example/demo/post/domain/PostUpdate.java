@@ -5,12 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class PostUpdateDto {
+public class PostUpdate {
 
     private final String content;
 
     @Builder
-    public PostUpdateDto(
+    public PostUpdate(
         @JsonProperty("content") String content) {
         this.content = content;
     }

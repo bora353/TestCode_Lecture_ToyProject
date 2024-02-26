@@ -1,10 +1,10 @@
-package com.example.demo.controller;
+package com.example.demo.user.controller;
 
-import com.example.demo.model.dto.MyProfileResponse;
-import com.example.demo.model.dto.UserResponse;
-import com.example.demo.model.dto.UserUpdateDto;
-import com.example.demo.repository.UserEntity;
-import com.example.demo.service.UserService;
+import com.example.demo.user.controller.response.MyProfileResponse;
+import com.example.demo.user.controller.response.UserResponse;
+import com.example.demo.user.domain.User;
+import com.example.demo.user.domain.UserUpdate;
+import com.example.demo.user.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,7 +35,7 @@ public class UserController {
     public ResponseEntity<UserResponse> getUserById(@PathVariable long id) {
         return ResponseEntity
             .ok()
-            .body(toResponse(userService.getById(id)));
+            .body(UserResponse.from(userService.getById(id)));
     }
 
     @GetMapping("/{id}/verify")
@@ -53,45 +53,45 @@ public class UserController {
         @Parameter(name = "EMAIL", in = ParameterIn.HEADER) // Swagger 어노테이션 (매개변수가 헤더에 위치함 나타냄)
         @RequestHeader("EMAIL") String email // 일반적으로 스프링 시큐리티를 사용한다면 UserPrincipal 에서 가져옵니다.
     ) {
-        UserEntity userEntity = userService.getByEmail(email);
-        userService.login(userEntity.getId());
+        User user = userService.getByEmail(email);
+        userService.login(user.getId());
         return ResponseEntity
             .ok()
-            .body(toMyProfileResponse(userEntity));
+            .body(MyProfileResponse.from(user));
     }
 
     @PutMapping("/me")
     @Parameter(in = ParameterIn.HEADER, name = "EMAIL")
     public ResponseEntity<MyProfileResponse> updateMyInfo(
-        @Parameter(name = "EMAIL", in = ParameterIn.HEADER)
+            @Parameter(name = "EMAIL", in = ParameterIn.HEADER)
         @RequestHeader("EMAIL") String email, // 일반적으로 스프링 시큐리티를 사용한다면 UserPrincipal 에서 가져옵니다.
-        @RequestBody UserUpdateDto userUpdateDto // Post, Put, Patch에서 데이터 가져올 때 사용
+            @RequestBody UserUpdate userUpdate // Post, Put, Patch에서 데이터 가져올 때 사용
     ) {
-        UserEntity userEntity = userService.getByEmail(email);
-        userEntity = userService.update(userEntity.getId(), userUpdateDto);
+        User user = userService.getByEmail(email);
+        user = userService.update(user.getId(), userUpdate);
         return ResponseEntity
             .ok()
-            .body(toMyProfileResponse(userEntity));
+            .body(MyProfileResponse.from(user));
     }
 
-    public UserResponse toResponse(UserEntity userEntity) {
-        UserResponse userResponse = new UserResponse();
-        userResponse.setId(userEntity.getId());
-        userResponse.setEmail(userEntity.getEmail());
-        userResponse.setNickname(userEntity.getNickname());
-        userResponse.setStatus(userEntity.getStatus());
-        userResponse.setLastLoginAt(userEntity.getLastLoginAt());
-        return userResponse;
-    }
+//    public UserResponse toResponse(UserEntity userEntity) {
+//        UserResponse userResponse = new UserResponse();
+//        userResponse.setId(userEntity.getId());
+//        userResponse.setEmail(userEntity.getEmail());
+//        userResponse.setNickname(userEntity.getNickname());
+//        userResponse.setStatus(userEntity.getStatus());
+//        userResponse.setLastLoginAt(userEntity.getLastLoginAt());
+//        return userResponse;
+//    }
 
-    public MyProfileResponse toMyProfileResponse(UserEntity userEntity) {
-        MyProfileResponse myProfileResponse = new MyProfileResponse();
-        myProfileResponse.setId(userEntity.getId());
-        myProfileResponse.setEmail(userEntity.getEmail());
-        myProfileResponse.setNickname(userEntity.getNickname());
-        myProfileResponse.setStatus(userEntity.getStatus());
-        myProfileResponse.setAddress(userEntity.getAddress());
-        myProfileResponse.setLastLoginAt(userEntity.getLastLoginAt());
-        return myProfileResponse;
-    }
+//    public MyProfileResponse toMyProfileResponse(UserEntity userEntity) {
+//        MyProfileResponse myProfileResponse = new MyProfileResponse();
+//        myProfileResponse.setId(userEntity.getId());
+//        myProfileResponse.setEmail(userEntity.getEmail());
+//        myProfileResponse.setNickname(userEntity.getNickname());
+//        myProfileResponse.setStatus(userEntity.getStatus());
+//        myProfileResponse.setAddress(userEntity.getAddress());
+//        myProfileResponse.setLastLoginAt(userEntity.getLastLoginAt());
+//        return myProfileResponse;
+//    }
 }

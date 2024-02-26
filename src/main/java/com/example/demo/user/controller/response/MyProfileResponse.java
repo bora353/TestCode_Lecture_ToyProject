@@ -1,9 +1,9 @@
-package com.example.demo.user.domain;
+package com.example.demo.user.controller.response;
 
+import com.example.demo.user.domain.User;
 import com.example.demo.user.domain.UserStatus;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 @Builder

@@ -1,9 +1,11 @@
-package com.example.demo.user.controller;
+package com.example.demo.post.controller;
 
-import com.example.demo.user.domain.dto.PostResponse;
-import com.example.demo.user.domain.dto.PostUpdateDto;
-import com.example.demo.user.repository.PostEntity;
-import com.example.demo.user.service.PostService;
+import com.example.demo.user.controller.UserController;
+import com.example.demo.post.controller.response.PostResponse;
+import com.example.demo.post.domain.PostUpdate;
+import com.example.demo.post.infrastructure.PostEntity;
+import com.example.demo.post.service.PostService;
+import com.example.demo.user.controller.response.UserResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,29 +23,29 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostController {
 
     private final PostService postService;
-    private final UserController userController;
+    // private final UserController userController; // 필요 없어짐
 
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable long id) {
         return ResponseEntity
             .ok()
-            .body(toResponse(postService.getById(id)));
+            .body(PostResponse.from(postService.getById(id)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PostResponse> updatePost(@PathVariable long id, @RequestBody PostUpdateDto postUpdateDto) {
+    public ResponseEntity<PostResponse> updatePost(@PathVariable long id, @RequestBody PostUpdate postUpdate) {
         return ResponseEntity
             .ok()
-            .body(toResponse(postService.update(id, postUpdateDto)));
+            .body(PostResponse.from(postService.update(id, postUpdate)));
     }
 
-    public PostResponse toResponse(PostEntity postEntity) {
-        PostResponse PostResponse = new PostResponse();
-        PostResponse.setId(postEntity.getId());
-        PostResponse.setContent(postEntity.getContent());
-        PostResponse.setCreatedAt(postEntity.getCreatedAt());
-        PostResponse.setModifiedAt(postEntity.getModifiedAt());
-        PostResponse.setWriter(userController.toResponse(postEntity.getWriter()));
-        return PostResponse;
-    }
+//    public PostResponse toResponse(PostEntity postEntity) {
+//        PostResponse PostResponse = new PostResponse();
+//        PostResponse.setId(postEntity.getId());
+//        PostResponse.setContent(postEntity.getContent());
+//        PostResponse.setCreatedAt(postEntity.getCreatedAt());
+//        PostResponse.setModifiedAt(postEntity.getModifiedAt());
+//        PostResponse.setWriter(UserResponse.from(postEntity.getWriter()));
+//        return PostResponse;
+//    }
 }

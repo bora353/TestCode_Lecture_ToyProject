@@ -1,13 +1,16 @@
-package com.example.demo.user.service;
+package com.example.demo.post.service;
 
 import com.example.demo.common.domain.exception.ResourceNotFoundException;
-import com.example.demo.user.domain.dto.PostCreateDto;
-import com.example.demo.user.domain.dto.PostUpdateDto;
-import com.example.demo.post.repository.PostEntity;
-import com.example.demo.post.repository.PostRepository;
-import com.example.demo.user.repository.UserEntity;
+import com.example.demo.post.domain.Post;
+import com.example.demo.post.domain.PostCreate;
+import com.example.demo.post.domain.PostUpdate;
+import com.example.demo.post.infrastructure.PostEntity;
+import com.example.demo.post.service.port.PostRepository;
+import com.example.demo.user.domain.User;
+import com.example.demo.user.infrastructure.UserEntity;
 import java.time.Clock;
 
+import com.example.demo.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,26 +18,28 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PostService {
 
+    //private final PostJpaRepository postJpaRepository;
     private final PostRepository postRepository;
     private final UserService userService;
 
-    public PostEntity getById(long id) {
+    public Post getById(long id) {
         return postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Posts", id));
     }
 
-    public PostEntity create(PostCreateDto postCreateDto) {
-        UserEntity userEntity = userService.getById(postCreateDto.getWriterId());
-        PostEntity postEntity = new PostEntity();
-        postEntity.setWriter(userEntity);
-        postEntity.setContent(postCreateDto.getContent());
-        postEntity.setCreatedAt(Clock.systemUTC().millis());
-        return postRepository.save(postEntity);
+    public Post create(PostCreate postCreate) {
+        User writer = userService.getById(postCreate.getWriterId());
+        Post post = Post.from(writer, postCreate);
+
+//        postEntity.setWriter(userEntity);
+//        postEntity.setContent(postCreate.getContent());
+//        postEntity.setCreatedAt(Clock.systemUTC().millis());
+        return postRepository.save(post);
     }
 
-    public PostEntity update(long id, PostUpdateDto postUpdateDto) {
-        PostEntity postEntity = getById(id);
-        postEntity.setContent(postUpdateDto.getContent());
-        postEntity.setModifiedAt(Clock.systemUTC().millis());
-        return postRepository.save(postEntity);
+    public Post update(long id, PostUpdate postUpdate) {
+        Post post = getById(id);
+        post = post.update(postUpdate);
+
+        return postRepository.save(post);
     }
 }
